@@ -44,20 +44,27 @@ struct OnboardingView: View {
         ZStack {
             Color.black
                 .ignoresSafeArea()
-            switch step {
-            case .welcome:
-                welcomeStep
-            case .screenTime:
-                screenTimeStep
+            VStack(spacing: 0) {
+                statusBar
+                    .padding(.top, 4)
+                    .padding(.horizontal, 28)
+
+                switch step {
+                case .welcome:
+                    welcomeStep
+                case .screenTime:
+                    screenTimeStep
+                }
+
+                homeIndicator
+                    .padding(.bottom, 8)
             }
         }
     }
 
     private var welcomeStep: some View {
         VStack(spacing: 0) {
-            Text("Opal")
-                .font(.custom("Inter SemiBold", size: 32, relativeTo: .title2))
-                .foregroundStyle(.white)
+            opalWordmark
                 .padding(.top, 20)
                 .padding(.bottom, 24)
 
@@ -107,9 +114,7 @@ struct OnboardingView: View {
 
     private var screenTimeStep: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("Opal")
-                .font(.custom("Inter SemiBold", size: 32, relativeTo: .title2))
-                .foregroundStyle(.white)
+            opalWordmark
                 .frame(maxWidth: .infinity)
                 .padding(.top, 20)
                 .padding(.bottom, 28)
@@ -150,6 +155,40 @@ struct OnboardingView: View {
 
             Spacer()
         }
+    }
+
+    private var opalWordmark: some View {
+        HStack(spacing: 8) {
+            Circle()
+                .stroke(Color.white, lineWidth: 2.4)
+                .frame(width: 18, height: 18)
+
+            Text("Opal")
+                .font(.custom("Inter SemiBold", size: 32, relativeTo: .title2))
+                .foregroundStyle(.white)
+        }
+    }
+
+    private var statusBar: some View {
+        HStack {
+            Text("9:41")
+                .font(.custom("Inter SemiBold", size: 17, relativeTo: .caption))
+                .foregroundStyle(.white)
+            Spacer()
+            HStack(spacing: 5) {
+                Image(systemName: "cellularbars")
+                Image(systemName: "wifi")
+                Image(systemName: "battery.100")
+            }
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundStyle(.white)
+        }
+    }
+
+    private var homeIndicator: some View {
+        Capsule()
+            .fill(Color.white.opacity(0.8))
+            .frame(width: 140, height: 5)
     }
 
     private var phonePreview: some View {
