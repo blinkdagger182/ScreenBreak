@@ -8,9 +8,25 @@
 import SwiftUI
 
 struct OnboardingView: View {
+    private enum OnboardingStep {
+        case welcome
+        case screenTime
+    }
+
     @AppStorage("showOnboarding") var showOnboarding = true
     @EnvironmentObject var launchScreenManager: LaunchScreenManager
     @State private var animatePhone = false
+    @State private var step: OnboardingStep = .welcome
+    @State private var selectedRange: String?
+
+    private let ranges = [
+        "Under 1 hour",
+        "1-3 hours",
+        "3-4 hours",
+        "4-5 hours",
+        "5-7 hours",
+        "More than 7 hours"
+    ]
     
     var body: some View {
         onboardingView
@@ -28,53 +44,111 @@ struct OnboardingView: View {
         ZStack {
             Color.black
                 .ignoresSafeArea()
-            VStack(spacing: 0) {
-                Text("Opal")
-                    .font(.custom("Inter SemiBold", size: 32, relativeTo: .title2))
-                    .foregroundStyle(.white)
-                    .padding(.top, 20)
-                    .padding(.bottom, 24)
-
-                phonePreview
-                    .scaleEffect(animatePhone ? 1 : 0.92)
-                    .opacity(animatePhone ? 1 : 0.25)
-                    .padding(.bottom, 44)
-
-                Text("Welcome to Opal")
-                    .font(.custom("Inter SemiBold", size: 48, relativeTo: .largeTitle))
-                    .foregroundStyle(.white)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 30)
-
-                Text("Starting today, let's focus better and\naccomplish your dreams.")
-                    .font(.custom("Inter Regular", size: 22, relativeTo: .body))
-                    .foregroundStyle(Color.white.opacity(0.82))
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(4)
-                    .padding(.horizontal, 30)
-                    .padding(.top, 14)
-
-                Button {
-                    showOnboarding = false
-                } label: {
-                    Text("Get Started")
-                        .font(.custom("Inter SemiBold", size: 34, relativeTo: .title2))
-                        .foregroundStyle(.black)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 84)
-                        .background(Color.white)
-                        .clipShape(Capsule())
-                }
-                .padding(.horizontal, 34)
-                .padding(.top, 48)
-
-                Text("Already have an account?")
-                    .font(.custom("Inter SemiBold", size: 18, relativeTo: .headline))
-                    .foregroundStyle(Color.white.opacity(0.8))
-                    .padding(.top, 28)
-
-                Spacer(minLength: 24)
+            switch step {
+            case .welcome:
+                welcomeStep
+            case .screenTime:
+                screenTimeStep
             }
+        }
+    }
+
+    private var welcomeStep: some View {
+        VStack(spacing: 0) {
+            Text("Opal")
+                .font(.custom("Inter SemiBold", size: 32, relativeTo: .title2))
+                .foregroundStyle(.white)
+                .padding(.top, 20)
+                .padding(.bottom, 24)
+
+            phonePreview
+                .scaleEffect(animatePhone ? 1 : 0.92)
+                .opacity(animatePhone ? 1 : 0.25)
+                .padding(.bottom, 44)
+
+            Text("Welcome to Opal")
+                .font(.custom("Inter SemiBold", size: 48, relativeTo: .largeTitle))
+                .foregroundStyle(.white)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 30)
+
+            Text("Starting today, let's focus better and\naccomplish your dreams.")
+                .font(.custom("Inter Regular", size: 22, relativeTo: .body))
+                .foregroundStyle(Color.white.opacity(0.82))
+                .multilineTextAlignment(.center)
+                .lineSpacing(4)
+                .padding(.horizontal, 30)
+                .padding(.top, 14)
+
+            Button {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    step = .screenTime
+                }
+            } label: {
+                Text("Get Started")
+                    .font(.custom("Inter SemiBold", size: 34, relativeTo: .title2))
+                    .foregroundStyle(.black)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 84)
+                    .background(Color.white)
+                    .clipShape(Capsule())
+            }
+            .padding(.horizontal, 34)
+            .padding(.top, 48)
+
+            Text("Already have an account?")
+                .font(.custom("Inter SemiBold", size: 18, relativeTo: .headline))
+                .foregroundStyle(Color.white.opacity(0.8))
+                .padding(.top, 28)
+
+            Spacer(minLength: 24)
+        }
+    }
+
+    private var screenTimeStep: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text("Opal")
+                .font(.custom("Inter SemiBold", size: 32, relativeTo: .title2))
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.top, 20)
+                .padding(.bottom, 28)
+
+            Text("What is your daily average\nScreen Time?")
+                .font(.custom("Inter SemiBold", size: 50, relativeTo: .largeTitle))
+                .foregroundStyle(.white)
+                .lineSpacing(2)
+                .padding(.horizontal, 28)
+
+            Text("On your phone only. Your best guess is ok.")
+                .font(.custom("Inter Regular", size: 18, relativeTo: .body))
+                .foregroundStyle(Color.white.opacity(0.86))
+                .padding(.horizontal, 28)
+                .padding(.top, 10)
+                .padding(.bottom, 26)
+
+            VStack(spacing: 16) {
+                ForEach(ranges, id: \.self) { range in
+                    Button {
+                        selectedRange = range
+                        showOnboarding = false
+                    } label: {
+                        Text(range)
+                            .font(.custom("Inter SemiBold", size: 18, relativeTo: .headline))
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 56)
+                            .background(
+                                RoundedRectangle(cornerRadius: 11, style: .continuous)
+                                    .fill(selectedRange == range ? Color.white.opacity(0.24) : Color(red: 0.09, green: 0.09, blue: 0.13))
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 18)
+
+            Spacer()
         }
     }
 
