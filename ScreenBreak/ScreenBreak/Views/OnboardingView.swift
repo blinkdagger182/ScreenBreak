@@ -6,92 +6,147 @@
 //
 
 import SwiftUI
-import RiveRuntime
-import ManagedSettings
-import CoreData
 
 struct OnboardingView: View {
     @AppStorage("showOnboarding") var showOnboarding = true
     @EnvironmentObject var launchScreenManager: LaunchScreenManager
+    @State private var animatePhone = false
     
     var body: some View {
-       onboardingView
-        .onAppear{
-           DispatchQueue
-               .main
-               .asyncAfter(deadline:.now() + 5){
-                   launchScreenManager.dismiss()
-               }
-
-       }
-    }
-
-    var onboardingView:some View{
-        ZStack {
-            Color("backgroundColor")
-                .ignoresSafeArea()
-            RiveViewModel(fileName: "shapes").view()
-                .ignoresSafeArea()
-                .blur(radius:30)
-                .background(
-                    Image("Spline")
-                        .blur(radius:60)
-                        .offset(x:200, y:100)
-                )
-            
-            ZStack {
-                RoundedRectangle(cornerRadius:40,style:.circular).fill(Color("onboardingCard"))
-                
-                VStack{
-                    Image(systemName:"clock")
-                        .resizable()
-                        .frame(width:100, height:100)
-                    Text("Welcome to ScreenBreak! ")
-                        .customFont(.title3)
-                    Spacer()
-                        .frame(height:30)
-                    Text("You will have the ability to :")
-                        .customFont(.headline)
-                    Spacer()
-                        .frame(height:10)
-                    VStack{
-                        Text("- Gain insights for your device activity")
-                            .customFont(.subheadline)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                        Text("- View visial displays of information")
-                            .customFont(.subheadline)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                        Text("- Lock any application(s) of your choosing for a specified time period")
-                            .customFont(.subheadline)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                    }
-                    .frame(maxWidth: UIScreen.main.bounds.width*0.7)
-                    .multilineTextAlignment(.center)
-                    
-                    Spacer()
-                        .frame(height:40)
-                    
-                    Button{
-                        showOnboarding = false
-                    }label: {
-                        Text("Begin Insights")
-                            .customFont(.headline)
-                        
-                    }
-                    .frame(width:UIScreen.main.bounds.width * 0.42, height: 40)
-                    .background(Color("onboardingCard").opacity(0.9))
-                    .mask(RoundedRectangle(cornerRadius:5))
-                    .shadow(color:Color("Shadow"),radius:3)
-                    .padding()
+        onboardingView
+            .onAppear {
+                withAnimation(.easeOut(duration: 0.7)) {
+                    animatePhone = true
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                    launchScreenManager.dismiss()
                 }
             }
-            .frame(width:UIScreen.main.bounds.width * 0.8, height:500)
-            .mask(RoundedRectangle(cornerRadius:40))
-            .shadow(color: Color("Shadow"), radius:5, x:2, y:3)
-            .overlay(RoundedRectangle(cornerRadius: 40, style: .continuous)
-                .stroke(.linearGradient(colors:[.white.opacity(0.2), .gray.opacity(0.8)], startPoint:.topLeading, endPoint: .bottomTrailing))
-            )
+    }
+
+    var onboardingView: some View {
+        ZStack {
+            Color.black
+                .ignoresSafeArea()
+            VStack(spacing: 0) {
+                Text("Opal")
+                    .font(.custom("Inter SemiBold", size: 32, relativeTo: .title2))
+                    .foregroundStyle(.white)
+                    .padding(.top, 20)
+                    .padding(.bottom, 24)
+
+                phonePreview
+                    .scaleEffect(animatePhone ? 1 : 0.92)
+                    .opacity(animatePhone ? 1 : 0.25)
+                    .padding(.bottom, 44)
+
+                Text("Welcome to Opal")
+                    .font(.custom("Inter SemiBold", size: 48, relativeTo: .largeTitle))
+                    .foregroundStyle(.white)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 30)
+
+                Text("Starting today, let's focus better and\naccomplish your dreams.")
+                    .font(.custom("Inter Regular", size: 22, relativeTo: .body))
+                    .foregroundStyle(Color.white.opacity(0.82))
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(4)
+                    .padding(.horizontal, 30)
+                    .padding(.top, 14)
+
+                Button {
+                    showOnboarding = false
+                } label: {
+                    Text("Get Started")
+                        .font(.custom("Inter SemiBold", size: 34, relativeTo: .title2))
+                        .foregroundStyle(.black)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 84)
+                        .background(Color.white)
+                        .clipShape(Capsule())
+                }
+                .padding(.horizontal, 34)
+                .padding(.top, 48)
+
+                Text("Already have an account?")
+                    .font(.custom("Inter SemiBold", size: 18, relativeTo: .headline))
+                    .foregroundStyle(Color.white.opacity(0.8))
+                    .padding(.top, 28)
+
+                Spacer(minLength: 24)
+            }
         }
+    }
+
+    private var phonePreview: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 52, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [Color(red: 0.14, green: 0.13, blue: 0.18), Color(red: 0.04, green: 0.04, blue: 0.07)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 52, style: .continuous)
+                        .stroke(Color.white.opacity(0.20), lineWidth: 3)
+                )
+                .frame(width: 288, height: 590)
+                .shadow(color: .black.opacity(0.45), radius: 28, y: 10)
+
+            VStack(spacing: 20) {
+                Capsule()
+                    .fill(Color.black.opacity(0.42))
+                    .frame(width: 132, height: 34)
+                    .padding(.top, 20)
+
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.blue.opacity(0.35), Color.cyan.opacity(0.4)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .frame(width: 210, height: 14)
+
+                LazyVGrid(columns: Array(repeating: GridItem(.fixed(44), spacing: 12), count: 4), spacing: 14) {
+                    ForEach(0..<16, id: \.self) { index in
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .fill(iconColor(at: index))
+                            .frame(width: 44, height: 44)
+                    }
+                }
+                .padding(.horizontal, 18)
+
+                Spacer()
+
+                HStack(spacing: 14) {
+                    ForEach(0..<4, id: \.self) { _ in
+                        RoundedRectangle(cornerRadius: 11, style: .continuous)
+                            .fill(Color.white.opacity(0.9))
+                            .frame(width: 45, height: 45)
+                    }
+                }
+                .padding(.bottom, 28)
+            }
+            .frame(width: 288, height: 590)
+        }
+    }
+
+    private func iconColor(at index: Int) -> Color {
+        let colors: [Color] = [
+            Color(red: 0.21, green: 0.54, blue: 0.97),
+            Color(red: 0.93, green: 0.29, blue: 0.28),
+            Color(red: 0.95, green: 0.59, blue: 0.11),
+            Color(red: 0.31, green: 0.39, blue: 0.95),
+            Color(red: 0.76, green: 0.25, blue: 0.52),
+            Color(red: 0.21, green: 0.67, blue: 0.38),
+            Color(red: 0.16, green: 0.57, blue: 0.84),
+            Color(red: 0.29, green: 0.60, blue: 0.88)
+        ]
+        return colors[index % colors.count]
     }
 }
 
