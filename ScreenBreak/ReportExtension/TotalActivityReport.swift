@@ -46,18 +46,19 @@ struct TotalActivityReport: DeviceActivityReportScene {
                 
                 
                 for await c in a.categories {
-                    categories.append((c.category.localizedDisplayName)!)
+                    guard let categoryName = c.category.localizedDisplayName else { continue }
+                    categories.append(categoryName)
                     for await ap in c.applications {
                         let appName = (ap.application.localizedDisplayName ?? "nil")
                         let bundle = (ap.application.bundleIdentifier ?? "nil")
+                        guard let token = ap.application.token else { continue }
                         if appName == bundle{
                             continue
                         }
                         
                         let duration = Int(ap.totalActivityDuration)
                         let durationInterval = ap.totalActivityDuration
-                        let category = c.category.localizedDisplayName!
-                        let token = ap.application.token!
+                        let category = categoryName
                         
                         let numberOfHours = duration / 3600
                         let numberOfMins = (duration % 3600) / 60
@@ -94,5 +95,4 @@ struct TotalActivityReport: DeviceActivityReportScene {
         return ActivityReport(totalDuration: totalActivityDuration,totalPickupsWithoutApplicationActivity: totalPickups, longestActivity: longestActivity, firstPickup: firstPickup, categories: categories, apps: list)
     }
 }
-
 

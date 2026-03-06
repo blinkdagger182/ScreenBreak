@@ -23,14 +23,15 @@ struct TopAppsReport: DeviceActivityReportScene {
         for await d in data {
             for await a in d.activitySegments{
                 for await c in a.categories {
+                    guard let categoryName = c.category.localizedDisplayName else { continue }
                     for await ap in c.applications {
                         
                         let appName = (ap.application.localizedDisplayName ?? "nil")
                         let bundle = (ap.application.bundleIdentifier ?? "nil")
+                        guard let token = ap.application.token else { continue }
                         let duration = Int(ap.totalActivityDuration)
                         let durationInterval = ap.totalActivityDuration
-                        let category = c.category.localizedDisplayName!
-                        let token = ap.application.token!
+                        let category = categoryName
                         
                         let numberOfHours = duration / 3600
                         let numberOfMins = (duration % 3600) / 60
@@ -64,21 +65,9 @@ struct TopAppsReport: DeviceActivityReportScene {
             }
         }
         list.sort(by: sortApps)
-        if list.count < 3{
-            if list.count == 2{
-                
-            }
-            if list.count == 1{
-                
-            }
-            if list.count == 0{
-                
-            }
-        }
-        return TopThreeReport(apps: [list[0], list[1], list[2]])
+        return TopThreeReport(apps: Array(list.prefix(3)))
     }
 }
-
 
 
 

@@ -40,23 +40,25 @@ struct TotalPickupsReport: DeviceActivityReportScene {
              
                 for await c in a.categories {
                     let category = c.category
+                    guard let categoryName = category.localizedDisplayName else { continue }
+                    guard let categoryToken = category.token else { continue }
                     let hash = c.hashValue
                     let duration = c.totalActivityDuration
-                    let categoryActivity = CategoryDeviceActivity(id: hash, category: category.localizedDisplayName!, duration: duration, token: category.token!)
+                    let categoryActivity = CategoryDeviceActivity(id: hash, category: categoryName, duration: duration, token: categoryToken)
                     catsList.append(categoryActivity)
-                    categories.append((c.category.localizedDisplayName)!)
+                    categories.append(categoryName)
                     
                     for await ap in c.applications {
                         let appName = (ap.application.localizedDisplayName ?? "nil")
                         let bundle = (ap.application.bundleIdentifier ?? "nil")
+                        guard let token = ap.application.token else { continue }
                         if appName == bundle{
                             continue
                         }
                         
                         let duration = Int(ap.totalActivityDuration)
                         let durationInterval = ap.totalActivityDuration
-                        let category = c.category.localizedDisplayName!
-                        let token = ap.application.token!
+                        let category = categoryName
                         let formatedDuration = formatDuration(duration: duration)
                         let numberOfPickups = ap.numberOfPickups
                         let notifs = ap.numberOfNotifications
@@ -78,7 +80,7 @@ struct TotalPickupsReport: DeviceActivityReportScene {
         // Gives us an understandable string representation of first pickup
         let formatter = DateFormatter()
         formatter.dateFormat = "h:mm a"
-        let dateString = formatter.string(from: firstPickup!)
+        let dateString = firstPickup.map { formatter.string(from: $0) } ?? "N/A"
         
         let formatter2 = DateComponentsFormatter()
         formatter2.allowedUnits = [.hour, .minute, .second]

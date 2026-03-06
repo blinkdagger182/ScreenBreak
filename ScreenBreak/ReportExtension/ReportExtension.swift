@@ -16,10 +16,6 @@ struct ReportExtension: DeviceActivityReportExtension {
             HomeReportView(homeReport: chartAndTopThreeReport)
         }
         
-        TopAppsReport {topThreeReport in
-            TopThreeView(topThreeReport: topThreeReport)
-        }
-        
         TotalActivityReport { totalActivity in
             TotalActivityView(activityReport: totalActivity)
         }

@@ -35,11 +35,12 @@ struct HomeReport: DeviceActivityReportScene {
             for await a in d.activitySegments{
                 for await c in a.categories {
                     let category = c.category
+                    guard let categoryName = category.localizedDisplayName else { continue }
                     let hash = c.hashValue
                     let catDurationInMins = c.totalActivityDuration/60
                     
                     if catDurationInMins > 2.0{
-                        categoryChartData.append((category.localizedDisplayName!, catDurationInMins))
+                        categoryChartData.append((categoryName, catDurationInMins))
                     }
                     
 //                    let categoryActivity = CategoryDeviceActivity(id: hash, category: category.localizedDisplayName!, duration: duration, token: category.token!)
@@ -49,6 +50,7 @@ struct HomeReport: DeviceActivityReportScene {
                     for await ap in c.applications{
                         let appName = (ap.application.localizedDisplayName ?? "nil")
                         let bundle = (ap.application.bundleIdentifier ?? "nil")
+                        guard let token = ap.application.token else { continue }
                         if appName == bundle{
                             continue
                         }
@@ -60,8 +62,7 @@ struct HomeReport: DeviceActivityReportScene {
                         
                         let duration = Int(ap.totalActivityDuration)
                         let durationInterval = ap.totalActivityDuration
-                        let category = c.category.localizedDisplayName!
-                        let token = ap.application.token!
+                        let category = categoryName
                         
                         let formatedDuration = formatDuration(duration:duration)
                        
@@ -79,7 +80,12 @@ struct HomeReport: DeviceActivityReportScene {
         appList.sort(by:sortApps)
         
         
-        return ChartAndTopThreeReport(totalDuration: totalActivityDuration, categoryChartData: categoryChartData, appChartData:appChartData, topApps: [appList[0], appList[1], appList[2]])
+        return ChartAndTopThreeReport(
+            totalDuration: totalActivityDuration,
+            categoryChartData: categoryChartData,
+            appChartData: appChartData,
+            topApps: Array(appList.prefix(3))
+        )
     }
     
 }
@@ -117,5 +123,4 @@ func sortCategories(this:CategoryDeviceActivity, that:CategoryDeviceActivity) ->
 func sortApps(this:AppDeviceActivity, that:AppDeviceActivity) -> Bool {
     return this.durationInterval > that.durationInterval
 }
-
 
