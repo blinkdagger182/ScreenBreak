@@ -18,6 +18,7 @@ struct OnboardingView: View {
     @State private var animatePhone = false
     @State private var step: OnboardingStep = .welcome
     @State private var selectedRange: String?
+    @State private var showTrackingPrompt = true
 
     private let ranges = [
         "Under 1 hour",
@@ -29,150 +30,166 @@ struct OnboardingView: View {
     ]
     
     var body: some View {
-        onboardingView
-            .onAppear {
-                withAnimation(.easeOut(duration: 0.7)) {
-                    animatePhone = true
+        GeometryReader { proxy in
+            onboardingView(size: proxy.size)
+                .onAppear {
+                    withAnimation(.easeOut(duration: 0.7)) {
+                        animatePhone = true
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                        launchScreenManager.dismiss()
+                    }
                 }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                    launchScreenManager.dismiss()
-                }
-            }
+        }
     }
 
-    var onboardingView: some View {
+    func onboardingView(size: CGSize) -> some View {
         ZStack {
             Color.black
                 .ignoresSafeArea()
             VStack(spacing: 0) {
-                statusBar
-                    .padding(.top, 4)
-                    .padding(.horizontal, 28)
+                statusBar(size: size)
+                    .padding(.top, scaled(4, for: size, min: 2, max: 8))
+                    .padding(.horizontal, scaled(28, for: size, min: 16, max: 34))
 
                 switch step {
                 case .welcome:
-                    welcomeStep
+                    welcomeStep(size: size)
                 case .screenTime:
-                    screenTimeStep
+                    screenTimeStep(size: size)
                 }
 
-                homeIndicator
-                    .padding(.bottom, 8)
+                homeIndicator(size: size)
+                    .padding(.bottom, scaled(8, for: size, min: 6, max: 12))
             }
         }
     }
 
-    private var welcomeStep: some View {
-        VStack(spacing: 0) {
-            opalWordmark
-                .padding(.top, 20)
-                .padding(.bottom, 24)
+    private func welcomeStep(size: CGSize) -> some View {
+        ZStack {
+            VStack(spacing: 0) {
+                opalWordmark(size: size)
+                    .padding(.top, scaled(20, for: size, min: 10, max: 26))
+                    .padding(.bottom, scaled(24, for: size, min: 14, max: 32))
 
-            phonePreview
-                .scaleEffect(animatePhone ? 1 : 0.92)
-                .opacity(animatePhone ? 1 : 0.25)
-                .padding(.bottom, 44)
+                phonePreview(size: size)
+                    .scaleEffect(animatePhone ? 1 : 0.92)
+                    .opacity(animatePhone ? 1 : 0.25)
+                    .padding(.bottom, scaled(44, for: size, min: 20, max: 56))
 
-            Text("Welcome to Opal")
-                .font(.custom("Inter SemiBold", size: 48, relativeTo: .largeTitle))
-                .foregroundStyle(.white)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 30)
+                Text("Welcome to Opal")
+                    .font(.custom("Inter SemiBold", size: scaled(48, for: size, min: 30, max: 52), relativeTo: .largeTitle))
+                    .foregroundStyle(.white)
+                    .multilineTextAlignment(.center)
+                    .minimumScaleFactor(0.85)
+                    .padding(.horizontal, scaled(30, for: size, min: 18, max: 34))
 
-            Text("Starting today, let's focus better and\naccomplish your dreams.")
-                .font(.custom("Inter Regular", size: 22, relativeTo: .body))
-                .foregroundStyle(Color.white.opacity(0.82))
-                .multilineTextAlignment(.center)
-                .lineSpacing(4)
-                .padding(.horizontal, 30)
-                .padding(.top, 14)
+                Text("Starting today, let's focus better and\naccomplish your dreams.")
+                    .font(.custom("Inter Regular", size: scaled(22, for: size, min: 16, max: 24), relativeTo: .body))
+                    .foregroundStyle(Color.white.opacity(0.82))
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(scaled(4, for: size, min: 2, max: 6))
+                    .minimumScaleFactor(0.9)
+                    .padding(.horizontal, scaled(30, for: size, min: 18, max: 34))
+                    .padding(.top, scaled(14, for: size, min: 8, max: 18))
 
-            Button {
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    step = .screenTime
+                Button {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        step = .screenTime
+                    }
+                } label: {
+                    Text("Get Started")
+                        .font(.custom("Inter SemiBold", size: scaled(34, for: size, min: 24, max: 36), relativeTo: .title2))
+                        .foregroundStyle(.black)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: scaled(84, for: size, min: 60, max: 90))
+                        .background(Color.white)
+                        .clipShape(Capsule())
                 }
-            } label: {
-                Text("Get Started")
-                    .font(.custom("Inter SemiBold", size: 34, relativeTo: .title2))
-                    .foregroundStyle(.black)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 84)
-                    .background(Color.white)
-                    .clipShape(Capsule())
+                .padding(.horizontal, scaled(34, for: size, min: 20, max: 40))
+                .padding(.top, scaled(48, for: size, min: 22, max: 56))
+
+                Text("Already have an account?")
+                    .font(.custom("Inter SemiBold", size: scaled(18, for: size, min: 14, max: 20), relativeTo: .headline))
+                    .foregroundStyle(Color.white.opacity(0.8))
+                    .padding(.top, scaled(28, for: size, min: 14, max: 34))
+
+                Spacer(minLength: scaled(24, for: size, min: 10, max: 30))
             }
-            .padding(.horizontal, 34)
-            .padding(.top, 48)
 
-            Text("Already have an account?")
-                .font(.custom("Inter SemiBold", size: 18, relativeTo: .headline))
-                .foregroundStyle(Color.white.opacity(0.8))
-                .padding(.top, 28)
+            if showTrackingPrompt {
+                Color.black.opacity(0.2)
+                    .ignoresSafeArea()
 
-            Spacer(minLength: 24)
+                trackingPrompt(size: size)
+                    .padding(.horizontal, scaled(18, for: size, min: 12, max: 24))
+                    .transition(.opacity.combined(with: .scale(scale: 0.96)))
+            }
         }
     }
 
-    private var screenTimeStep: some View {
+    private func screenTimeStep(size: CGSize) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            opalWordmark
+            opalWordmark(size: size)
                 .frame(maxWidth: .infinity)
-                .padding(.top, 20)
-                .padding(.bottom, 28)
+                .padding(.top, scaled(20, for: size, min: 10, max: 26))
+                .padding(.bottom, scaled(28, for: size, min: 16, max: 34))
 
             Text("What is your daily average\nScreen Time?")
-                .font(.custom("Inter SemiBold", size: 50, relativeTo: .largeTitle))
+                .font(.custom("Inter SemiBold", size: scaled(50, for: size, min: 30, max: 52), relativeTo: .largeTitle))
                 .foregroundStyle(.white)
-                .lineSpacing(2)
-                .padding(.horizontal, 28)
+                .lineSpacing(scaled(2, for: size, min: 1, max: 3))
+                .minimumScaleFactor(0.8)
+                .padding(.horizontal, scaled(28, for: size, min: 18, max: 32))
 
             Text("On your phone only. Your best guess is ok.")
-                .font(.custom("Inter Regular", size: 18, relativeTo: .body))
+                .font(.custom("Inter Regular", size: scaled(18, for: size, min: 14, max: 20), relativeTo: .body))
                 .foregroundStyle(Color.white.opacity(0.86))
-                .padding(.horizontal, 28)
-                .padding(.top, 10)
-                .padding(.bottom, 26)
+                .padding(.horizontal, scaled(28, for: size, min: 18, max: 32))
+                .padding(.top, scaled(10, for: size, min: 6, max: 12))
+                .padding(.bottom, scaled(26, for: size, min: 16, max: 30))
 
-            VStack(spacing: 16) {
+            VStack(spacing: scaled(16, for: size, min: 10, max: 18)) {
                 ForEach(ranges, id: \.self) { range in
                     Button {
                         selectedRange = range
                         showOnboarding = false
                     } label: {
                         Text(range)
-                            .font(.custom("Inter SemiBold", size: 18, relativeTo: .headline))
+                            .font(.custom("Inter SemiBold", size: scaled(18, for: size, min: 14, max: 20), relativeTo: .headline))
                             .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)
-                            .frame(height: 56)
+                            .frame(height: scaled(56, for: size, min: 44, max: 60))
                             .background(
-                                RoundedRectangle(cornerRadius: 11, style: .continuous)
+                                RoundedRectangle(cornerRadius: scaled(11, for: size, min: 8, max: 12), style: .continuous)
                                     .fill(selectedRange == range ? Color.white.opacity(0.24) : Color(red: 0.09, green: 0.09, blue: 0.13))
                             )
                     }
                     .buttonStyle(.plain)
                 }
             }
-            .padding(.horizontal, 18)
+            .padding(.horizontal, scaled(18, for: size, min: 12, max: 24))
 
             Spacer()
         }
     }
 
-    private var opalWordmark: some View {
+    private func opalWordmark(size: CGSize) -> some View {
         HStack(spacing: 8) {
             Circle()
                 .stroke(Color.white, lineWidth: 2.4)
-                .frame(width: 18, height: 18)
+                .frame(width: scaled(18, for: size, min: 14, max: 20), height: scaled(18, for: size, min: 14, max: 20))
 
             Text("Opal")
-                .font(.custom("Inter SemiBold", size: 32, relativeTo: .title2))
+                .font(.custom("Inter SemiBold", size: scaled(32, for: size, min: 24, max: 34), relativeTo: .title2))
                 .foregroundStyle(.white)
         }
     }
 
-    private var statusBar: some View {
+    private func statusBar(size: CGSize) -> some View {
         HStack {
             Text("9:41")
-                .font(.custom("Inter SemiBold", size: 17, relativeTo: .caption))
+                .font(.custom("Inter SemiBold", size: scaled(17, for: size, min: 13, max: 18), relativeTo: .caption))
                 .foregroundStyle(.white)
             Spacer()
             HStack(spacing: 5) {
@@ -180,20 +197,76 @@ struct OnboardingView: View {
                 Image(systemName: "wifi")
                 Image(systemName: "battery.100")
             }
-            .font(.system(size: 13, weight: .semibold))
+            .font(.system(size: scaled(13, for: size, min: 10, max: 14), weight: .semibold))
             .foregroundStyle(.white)
         }
     }
 
-    private var homeIndicator: some View {
+    private func homeIndicator(size: CGSize) -> some View {
         Capsule()
             .fill(Color.white.opacity(0.8))
-            .frame(width: 140, height: 5)
+            .frame(width: scaled(140, for: size, min: 100, max: 150), height: scaled(5, for: size, min: 4, max: 6))
     }
 
-    private var phonePreview: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 52, style: .continuous)
+    private func trackingPrompt(size: CGSize) -> some View {
+        VStack(spacing: 0) {
+            VStack(spacing: 12) {
+                Text("Allow \"Opal\" to track your\nactivity across other\ncompanies' apps and\nwebsites?")
+                    .font(.custom("Inter SemiBold", size: scaled(16, for: size, min: 14, max: 18), relativeTo: .headline))
+                    .foregroundStyle(.black)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(1)
+
+                Text("By allowing access to this data you enable Opal to measure and improve your focus support experience.")
+                    .font(.custom("Inter Regular", size: scaled(11, for: size, min: 10, max: 12), relativeTo: .caption))
+                    .foregroundStyle(Color.black.opacity(0.75))
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, scaled(18, for: size, min: 12, max: 22))
+            }
+            .padding(.top, scaled(24, for: size, min: 14, max: 28))
+            .padding(.bottom, scaled(18, for: size, min: 12, max: 22))
+            .background(Color(red: 0.95, green: 0.95, blue: 0.97))
+
+            Divider()
+
+            Button {
+                withAnimation(.easeOut(duration: 0.2)) {
+                    showTrackingPrompt = false
+                }
+            } label: {
+                Text("Ask App Not to Track")
+                    .font(.custom("Inter Regular", size: scaled(16, for: size, min: 14, max: 18), relativeTo: .headline))
+                    .foregroundStyle(Color.blue)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: scaled(52, for: size, min: 42, max: 56))
+            }
+
+            Divider()
+
+            Button {
+                withAnimation(.easeOut(duration: 0.2)) {
+                    showTrackingPrompt = false
+                }
+            } label: {
+                Text("Allow")
+                    .font(.custom("Inter Regular", size: scaled(16, for: size, min: 14, max: 18), relativeTo: .headline))
+                    .foregroundStyle(Color.blue)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: scaled(52, for: size, min: 42, max: 56))
+            }
+        }
+        .background(.white)
+        .frame(maxWidth: scaled(370, for: size, min: 290, max: 390))
+        .clipShape(RoundedRectangle(cornerRadius: scaled(18, for: size, min: 14, max: 22), style: .continuous))
+        .shadow(color: .black.opacity(0.26), radius: 20, y: 8)
+    }
+
+    private func phonePreview(size: CGSize) -> some View {
+        let phoneWidth = scaled(288, for: size, min: 200, max: 300)
+        let phoneHeight = scaled(590, for: size, min: 400, max: 610)
+
+        return ZStack {
+            RoundedRectangle(cornerRadius: scaled(52, for: size, min: 34, max: 56), style: .continuous)
                 .fill(
                     LinearGradient(
                         colors: [Color(red: 0.14, green: 0.13, blue: 0.18), Color(red: 0.04, green: 0.04, blue: 0.07)],
@@ -202,19 +275,19 @@ struct OnboardingView: View {
                     )
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 52, style: .continuous)
+                    RoundedRectangle(cornerRadius: scaled(52, for: size, min: 34, max: 56), style: .continuous)
                         .stroke(Color.white.opacity(0.20), lineWidth: 3)
                 )
-                .frame(width: 288, height: 590)
+                .frame(width: phoneWidth, height: phoneHeight)
                 .shadow(color: .black.opacity(0.45), radius: 28, y: 10)
 
-            VStack(spacing: 20) {
+            VStack(spacing: scaled(20, for: size, min: 12, max: 22)) {
                 Capsule()
                     .fill(Color.black.opacity(0.42))
-                    .frame(width: 132, height: 34)
-                    .padding(.top, 20)
+                    .frame(width: scaled(132, for: size, min: 96, max: 138), height: scaled(34, for: size, min: 24, max: 36))
+                    .padding(.top, scaled(20, for: size, min: 10, max: 22))
 
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                RoundedRectangle(cornerRadius: scaled(14, for: size, min: 10, max: 16), style: .continuous)
                     .fill(
                         LinearGradient(
                             colors: [Color.blue.opacity(0.35), Color.cyan.opacity(0.4)],
@@ -222,30 +295,37 @@ struct OnboardingView: View {
                             endPoint: .trailing
                         )
                     )
-                    .frame(width: 210, height: 14)
+                    .frame(width: scaled(210, for: size, min: 150, max: 220), height: scaled(14, for: size, min: 8, max: 16))
 
-                LazyVGrid(columns: Array(repeating: GridItem(.fixed(44), spacing: 12), count: 4), spacing: 14) {
+                LazyVGrid(columns: Array(repeating: GridItem(.fixed(scaled(44, for: size, min: 30, max: 46)), spacing: scaled(12, for: size, min: 8, max: 13)), count: 4), spacing: scaled(14, for: size, min: 8, max: 15)) {
                     ForEach(0..<16, id: \.self) { index in
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        RoundedRectangle(cornerRadius: scaled(10, for: size, min: 7, max: 11), style: .continuous)
                             .fill(iconColor(at: index))
-                            .frame(width: 44, height: 44)
+                            .frame(width: scaled(44, for: size, min: 30, max: 46), height: scaled(44, for: size, min: 30, max: 46))
                     }
                 }
-                .padding(.horizontal, 18)
+                .padding(.horizontal, scaled(18, for: size, min: 12, max: 20))
 
                 Spacer()
 
-                HStack(spacing: 14) {
+                HStack(spacing: scaled(14, for: size, min: 9, max: 15)) {
                     ForEach(0..<4, id: \.self) { _ in
-                        RoundedRectangle(cornerRadius: 11, style: .continuous)
+                        RoundedRectangle(cornerRadius: scaled(11, for: size, min: 8, max: 12), style: .continuous)
                             .fill(Color.white.opacity(0.9))
-                            .frame(width: 45, height: 45)
+                            .frame(width: scaled(45, for: size, min: 30, max: 46), height: scaled(45, for: size, min: 30, max: 46))
                     }
                 }
-                .padding(.bottom, 28)
+                .padding(.bottom, scaled(28, for: size, min: 16, max: 30))
             }
-            .frame(width: 288, height: 590)
+            .frame(width: phoneWidth, height: phoneHeight)
         }
+    }
+
+    private func scaled(_ base: CGFloat, for size: CGSize, min minValue: CGFloat, max maxValue: CGFloat) -> CGFloat {
+        let widthScale = size.width / 393
+        let heightScale = size.height / 852
+        let value = base * Swift.min(widthScale, heightScale)
+        return Swift.max(minValue, Swift.min(maxValue, value))
     }
 
     private func iconColor(at index: Int) -> Color {
