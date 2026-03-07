@@ -23,16 +23,8 @@ struct ContentView: View {
     var body: some View {
         ZStack{
             Color("backgroundColor")
-            switch selectedTab{
-            case .home:
-                HomeView()
-            case .star:
-                AppsView()
-            case .timer:
-                ConfigRestrictionsView()
-            case .search:
-                MoreInsightsView()
-            }
+                .ignoresSafeArea()
+            tabContent
             TabBar()
             
         }
@@ -51,7 +43,25 @@ struct ContentView: View {
         }
         
     }
-    
+}
+
+private extension ContentView {
+    var tabContent: some View {
+        ZStack {
+            HomeView()
+                .opacity(selectedTab == .home ? 1 : 0)
+                .allowsHitTesting(selectedTab == .home)
+            AppsView()
+                .opacity(selectedTab == .star ? 1 : 0)
+                .allowsHitTesting(selectedTab == .star)
+            ConfigRestrictionsView()
+                .opacity(selectedTab == .timer ? 1 : 0)
+                .allowsHitTesting(selectedTab == .timer)
+            MoreInsightsView()
+                .opacity(selectedTab == .search ? 1 : 0)
+                .allowsHitTesting(selectedTab == .search)
+        }
+    }
 }
 
 
