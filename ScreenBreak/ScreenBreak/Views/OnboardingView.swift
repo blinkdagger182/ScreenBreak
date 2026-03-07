@@ -11,13 +11,17 @@ struct OnboardingView: View {
     private enum OnboardingStep {
         case welcome
         case screenTime
+        case focusGoal
     }
 
     @AppStorage("showOnboarding") var showOnboarding = true
+    @AppStorage("onboardingScreenTimeRange") var onboardingScreenTimeRange = ""
+    @AppStorage("onboardingFocusGoal") var onboardingFocusGoal = ""
     @EnvironmentObject var launchScreenManager: LaunchScreenManager
     @State private var animatePhone = false
     @State private var step: OnboardingStep = .welcome
     @State private var selectedRange: String?
+    @State private var selectedGoal: String?
     @State private var showTrackingPrompt = true
 
     private let ranges = [
@@ -27,6 +31,13 @@ struct OnboardingView: View {
         "4-5 hours",
         "5-7 hours",
         "More than 7 hours"
+    ]
+
+    private let goals = [
+        "Reduce social media scrolling",
+        "Stay focused while working",
+        "Be more present with family",
+        "Improve sleep routine"
     ]
     
     var body: some View {
@@ -52,11 +63,17 @@ struct OnboardingView: View {
                     .padding(.top, scaled(4, for: size, min: 2, max: 8))
                     .padding(.horizontal, scaled(28, for: size, min: 16, max: 34))
 
+                progressDots(size: size)
+                    .padding(.top, scaled(10, for: size, min: 6, max: 12))
+                    .padding(.bottom, scaled(8, for: size, min: 4, max: 12))
+
                 switch step {
                 case .welcome:
                     welcomeStep(size: size)
                 case .screenTime:
                     screenTimeStep(size: size)
+                case .focusGoal:
+                    focusGoalStep(size: size)
                 }
 
                 homeIndicator(size: size)
@@ -153,7 +170,10 @@ struct OnboardingView: View {
                 ForEach(ranges, id: \.self) { range in
                     Button {
                         selectedRange = range
-                        showOnboarding = false
+                        onboardingScreenTimeRange = range
+                        withAnimation(.easeInOut(duration: 0.28)) {
+                            step = .focusGoal
+                        }
                     } label: {
                         Text(range)
                             .font(.custom("Inter SemiBold", size: scaled(18, for: size, min: 14, max: 20), relativeTo: .headline))
@@ -171,6 +191,83 @@ struct OnboardingView: View {
             .padding(.horizontal, scaled(18, for: size, min: 12, max: 24))
 
             Spacer()
+        }
+    }
+
+    private func focusGoalStep(size: CGSize) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            opalWordmark(size: size)
+                .frame(maxWidth: .infinity)
+                .padding(.top, scaled(20, for: size, min: 10, max: 26))
+                .padding(.bottom, scaled(28, for: size, min: 16, max: 34))
+
+            Text("What do you want to improve first?")
+                .font(.custom("Inter SemiBold", size: scaled(42, for: size, min: 28, max: 46), relativeTo: .largeTitle))
+                .foregroundStyle(.white)
+                .lineSpacing(scaled(2, for: size, min: 1, max: 3))
+                .minimumScaleFactor(0.8)
+                .padding(.horizontal, scaled(28, for: size, min: 18, max: 32))
+
+            Text("Choose your main focus. You can update this later.")
+                .font(.custom("Inter Regular", size: scaled(18, for: size, min: 14, max: 20), relativeTo: .body))
+                .foregroundStyle(Color.white.opacity(0.86))
+                .padding(.horizontal, scaled(28, for: size, min: 18, max: 32))
+                .padding(.top, scaled(10, for: size, min: 6, max: 12))
+                .padding(.bottom, scaled(26, for: size, min: 16, max: 30))
+
+            VStack(spacing: scaled(14, for: size, min: 10, max: 18)) {
+                ForEach(goals, id: \.self) { goal in
+                    Button {
+                        selectedGoal = goal
+                        onboardingFocusGoal = goal
+                    } label: {
+                        HStack(spacing: scaled(12, for: size, min: 8, max: 14)) {
+                            Circle()
+                                .stroke(Color.white.opacity(0.5), lineWidth: 1.8)
+                                .overlay(
+                                    Circle()
+                                        .fill(Color.white)
+                                        .padding(4)
+                                        .opacity(selectedGoal == goal ? 1 : 0)
+                                )
+                                .frame(width: scaled(22, for: size, min: 18, max: 24), height: scaled(22, for: size, min: 18, max: 24))
+                            Text(goal)
+                                .font(.custom("Inter SemiBold", size: scaled(17, for: size, min: 14, max: 19), relativeTo: .headline))
+                                .foregroundStyle(.white)
+                            Spacer(minLength: 0)
+                        }
+                        .padding(.horizontal, scaled(16, for: size, min: 12, max: 18))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: scaled(62, for: size, min: 48, max: 68))
+                        .background(
+                            RoundedRectangle(cornerRadius: scaled(14, for: size, min: 10, max: 16), style: .continuous)
+                                .fill(selectedGoal == goal ? Color.white.opacity(0.20) : Color(red: 0.09, green: 0.09, blue: 0.13))
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, scaled(18, for: size, min: 12, max: 24))
+
+            Spacer(minLength: scaled(14, for: size, min: 10, max: 20))
+
+            Button {
+                guard let selectedGoal else { return }
+                onboardingFocusGoal = selectedGoal
+                showOnboarding = false
+            } label: {
+                Text("Start Focus Journey")
+                    .font(.custom("Inter SemiBold", size: scaled(24, for: size, min: 18, max: 26), relativeTo: .title2))
+                    .foregroundStyle(.black)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: scaled(72, for: size, min: 56, max: 78))
+                    .background(selectedGoal == nil ? Color.white.opacity(0.45) : Color.white)
+                    .clipShape(Capsule())
+            }
+            .buttonStyle(.plain)
+            .disabled(selectedGoal == nil)
+            .padding(.horizontal, scaled(28, for: size, min: 16, max: 32))
+            .padding(.bottom, scaled(18, for: size, min: 12, max: 20))
         }
     }
 
@@ -206,6 +303,21 @@ struct OnboardingView: View {
         Capsule()
             .fill(Color.white.opacity(0.8))
             .frame(width: scaled(140, for: size, min: 100, max: 150), height: scaled(5, for: size, min: 4, max: 6))
+    }
+
+    private func progressDots(size: CGSize) -> some View {
+        HStack(spacing: scaled(8, for: size, min: 6, max: 10)) {
+            progressDot(active: step == .welcome, size: size)
+            progressDot(active: step == .screenTime, size: size)
+            progressDot(active: step == .focusGoal, size: size)
+        }
+    }
+
+    private func progressDot(active: Bool, size: CGSize) -> some View {
+        Capsule()
+            .fill(active ? Color.white : Color.white.opacity(0.28))
+            .frame(width: active ? scaled(24, for: size, min: 16, max: 26) : scaled(8, for: size, min: 6, max: 10), height: scaled(8, for: size, min: 6, max: 10))
+            .animation(.easeOut(duration: 0.2), value: active)
     }
 
     private func trackingPrompt(size: CGSize) -> some View {
